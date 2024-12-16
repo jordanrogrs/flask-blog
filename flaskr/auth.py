@@ -5,7 +5,7 @@ from flask import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from blog.db import get_db
+from flaskr.db import get_db
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -36,14 +36,14 @@ def register():
         if error is None:
             try:
                 db.execute(
-                    "INSERT INTO user(username, password) VALUES (?, ?)",
+                    'INSERT INTO user(username, password) VALUES (?, ?)',
                     (username, generate_password_hash(password)),
                 )
                 db.commit()
             except db.IntegrityError:
-                error = f"User {username} is already registered."
+                error = f'User {username} is already registered.'
             else:
-                return redirect(url_for("auth.login"))
+                return redirect(url_for('auth.login'))
             
         flash(error)
 
@@ -70,7 +70,7 @@ def login():
 
         # Check if user exists and user credentials
         user = db.execute(
-            "SELECT * FROM user WHERE username = ?", (username,)
+            'SELECT * FROM user WHERE username = ?', (username,)
         ).fetchone()
 
         if user is None:
@@ -103,7 +103,7 @@ def load_logged_in_user():
     # User logged in
     else:
         g.user = get_db().execute(
-            "SELECT * FROM user WHERE id = ?", (user_id,)
+            'SELECT * FROM user WHERE id = ?', (user_id,)
         ).fetchone()
 
 
