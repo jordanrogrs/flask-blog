@@ -5,9 +5,38 @@ from flask import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from blog.db import get_db
+from .db import get_db
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
+
+
+# REQUIRE LOGIN
+def login_required(view):
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        # Redirect to login if no user
+        if g.user is None:
+            return redirect(url_for('auth.login'))
+        
+        return view(**kwargs)
+    
+    return wrapped_view
+
+
+# SESSION CHECK
+@bp.before_app_request
+def load_logged_in_user():
+    user_id = session.get('user_id')
+
+    # No user logged in
+    if user_id is None:
+        g.user = None
+
+    # User logged in
+    else:
+        g.user = (
+            get_db().execute('SELECT * FROM user WHERE id = ?', (user_id,)).fetchone()
+        )
 
 
 # REGISTER ROUTE
@@ -91,37 +120,8 @@ def login():
     return render_template('auth/login.html')
 
 
-# SESSION CHECK
-@bp.before_app_request
-def load_logged_in_user():
-    user_id = session.get('user_id')
-
-    # No user logged in
-    if user_id is None:
-        g.user = None
-
-    # User logged in
-    else:
-        g.user = get_db().execute(
-            'SELECT * FROM user WHERE id = ?', (user_id,)
-        ).fetchone()
-
-
 # LOGOUT ROUTE
 @bp.route('logout')
 def logout():
     session.clear()
     return redirect(url_for('index'))
-
-
-# REQUIRE LOGIN
-def login_required(view):
-    @functools.wraps(view)
-    def wrapped_view(**kwargs):
-        # Redirect to login if no user
-        if g.user is None:
-            return redirect(url_for('auth.login'))
-        
-        return view(**kwargs)
-    
-    return wrapped_view

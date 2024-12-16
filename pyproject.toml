@@ -1,18 +1,33 @@
 [project]
-name = "flaskr"
+name = "blog"
 version = "1.0.0"
 description = "The basic blog app built in the Flask tutorial."
 dependencies = [
     "flask",
 ]
 
+[project.optional-dependencies]
+test = ["pytest"]
+
 [build-system]
 requires = ["flit_core<4"]
 build-backend = "flit_core.buildapi"
 
+[tool.flit.module]
+name = "blog"
+
+[tool.flit.sdist]
+include = [
+    "tests/",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+filterwarnings = ["error"]
 
 [tool.coverage.run]
 branch = true
-source = ["blog"]
+source = ["blog", "tests"]
+
+[tool.ruff]
+src = ["src"]

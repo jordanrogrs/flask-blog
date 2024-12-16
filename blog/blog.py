@@ -4,8 +4,8 @@ from flask import (
 
 from werkzeug.exceptions import abort
 
-from blog.auth import login_required
-from blog.db import get_db
+from .auth import login_required
+from .db import get_db
 
 bp = Blueprint('blog', __name__)
 
@@ -21,6 +21,26 @@ def index():
     return render_template('blog/index.html', posts=posts)
 
 
+# GET POST FUNCTION
+def get_post(id, check_author=True):
+    # Select post based on author id
+    post = get_db().execute(
+        'SELECT p.id, title, body, created, author_id, username'
+        ' FROM post p JOIN user u ON p.author_id = u.id'
+        ' WHERE p.id = ?',
+        (id,),
+    ).fetchone()
+
+    # Validate request
+    if post is None:
+        abort(404, f"Post id {id} doesn't exist.")
+
+    if check_author and post['author_id'] != g.user['id']:
+        abort(403)
+    
+    return post
+
+
 # CREATE ROUTE
 @bp.route('/create', methods=('GET', 'POST'))
 @login_required
@@ -34,8 +54,7 @@ def create():
         # Validate submission
         if not title:
             error = 'Title is required.'
-        if not body:
-            error = 'Body is required.'
+        
         if error is not None:
             flash(error)
         
@@ -55,26 +74,6 @@ def create():
     return render_template('blog/create.html')
 
 
-# GET POST FUNCTION
-def get_post(id, check_author=True):
-    # Select post based on author id
-    post = get_db().execute(
-        'SELECT p.id, title, body, created, author_id, username'
-        ' FROM post p JOIN user u ON p.author_id = u.id'
-        ' WHERE p.id = ?',
-        (id,)
-    ).fetchone()
-
-    # Validate request
-    if post is None:
-        abort(404, f"Post id {id} doesn't exist.")
-
-    if check_author and post['author_id'] != g.user['id']:
-        abort(403)
-    
-    return post
-
-
 # UPDATE ROUTE
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
 @login_required
@@ -91,8 +90,7 @@ def update(id):
         # Validate submission
         if not title:
             error = 'Title is required.'
-        if not body:
-            error = 'Body is required.'
+       
         if error is not None:
             flash(error)
         
