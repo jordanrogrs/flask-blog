@@ -4,8 +4,8 @@ from flask import (
 
 from werkzeug.exceptions import abort
 
-from flaskr.auth import login_required
-from flaskr.db import get_db
+from blog.auth import login_required
+from blog.db import get_db
 
 bp = Blueprint('blog', __name__)
 
@@ -83,7 +83,7 @@ def update(id):
     post = get_post(id)
 
     # User submitted form
-    if requres.method == 'POST':
+    if request.method == 'POST':
         title = request.form['title']
         body = request.form['body']
         error = None
