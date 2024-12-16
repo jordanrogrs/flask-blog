@@ -17,6 +17,8 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        confirmation = request.form['confirmation']
+
         db = get_db()
         error = None
 
@@ -25,6 +27,10 @@ def register():
             error = 'Username is required.'
         elif not password:
             error = 'Password is required.'
+        elif not confirmation:
+            error = 'Please confirm password.'
+        elif password != confirmation:
+            error = 'Passwords do not match.'
         
         # Insert user into database
         if error is None:
@@ -52,8 +58,15 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+
         db = get_db()
         error = None
+
+        # Validate submission
+        if not username:
+            error = 'Username is required.'
+        elif not password:
+            error = 'Password is required.'
 
         # Check if user exists and user credentials
         user = db.execute(
